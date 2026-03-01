@@ -23,7 +23,6 @@ export default function HomePage() {
                     style={{
                         border: "1px solid #ddd",
                         padding: 16,
-
                         marginBottom: 16,
                         borderRadius: 8
                     }}
@@ -35,14 +34,13 @@ export default function HomePage() {
                     </p>
 
                     <ProgressBar percentage={cat.progressPercentage} />
-
-                    <Link href={`/category/${cat.id}`}>
-                        <button style={{ marginTop: 10 }}>
-                            Starten
-                        </button>
-                    </Link>
                 </div>
             ))}
+            <Link href={`/category/${1}`}>
+                <button style={{ marginTop: 10 }}>
+                    Starten
+                </button>
+            </Link>
         </div>
     )
 }

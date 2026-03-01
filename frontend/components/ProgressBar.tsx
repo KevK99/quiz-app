@@ -1,19 +1,18 @@
 type ProgressBarProps = {
     percentage: number
+    label?: string
 }
 
-export default function ProgressBar({ percentage }: ProgressBarProps) {
+export default function ProgressBar({ percentage, label }: ProgressBarProps) {
     return (
         <div
             style={{
                 width: "100%",
-                backgroundColor: "#eee",
-                borderRadius: 8,
+                backgroundColor: "#e5e7eb",
+                borderRadius: 99,
                 overflow: "hidden",
-                height: 50,
-                marginTop: 10,
-                marginBottom: 20,
-                position: "relative"
+                height: 36,
+                position: "relative",
             }}
         >
             <div
@@ -21,21 +20,29 @@ export default function ProgressBar({ percentage }: ProgressBarProps) {
                     width: `${percentage}%`,
                     backgroundColor: percentage === 100 ? "#22c55e" : "#3b82f6",
                     height: "100%",
-                    transition: "width 0.3s ease"
+                    borderRadius: 99,
+                    transition: "width 0.4s ease",
                 }}
             />
-
             <span
                 style={{
                     position: "absolute",
+                    top: 0,
+                    left: 0,
                     width: "100%",
-                    textAlign: "center",
-                    fontSize: 14,
-                    lineHeight: "24px",
-                    fontWeight: "bold"
+                    height: "100%",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 13,
+                    fontWeight: "bold",
+                    color: "#1f2937",
+                    zIndex: 1,
+                    pointerEvents: "none",
+                    letterSpacing: "0.02em",
                 }}
             >
-                {percentage}%
+                {label ?? `${percentage}%`}
             </span>
         </div>
     )

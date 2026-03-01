@@ -6,7 +6,8 @@ const USER_ID = 1
 export async function fetchCategories(): Promise<CategoryProgress[]> {
     const res = await fetch(`${BASE_URL}/categories?userId=${USER_ID}`)
     if (!res.ok) throw new Error("Failed to fetch categories")
-    return res.json()
+    const json = await res.json()
+    return json.data ?? json
 }
 
 export async function fetchNextQuestion(categoryId: number): Promise<Question> {
