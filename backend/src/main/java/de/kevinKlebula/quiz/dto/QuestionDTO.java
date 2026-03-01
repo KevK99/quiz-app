@@ -16,4 +16,8 @@ public class QuestionDTO {
     private Long id;
     private String text;
     private List<String> answers;
+
+    private long totalQuestions;
+    private long correctAnswers;
+    private double progressPercentage;
 }
