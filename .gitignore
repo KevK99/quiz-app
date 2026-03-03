@@ -39,3 +39,7 @@ out/
 ### Node.js ###
 .next
 node_modules/
+
+frontend/package-lock.json
+frontend/tsconfig.json
+package-lock.json
