@@ -65,43 +65,14 @@ public class QuizService implements QuizServiceInterface {
         categoryRepository.findById(categoryId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException(
-                                "Category not found with id "
+                                "Category not found with id " + categoryId
                         )
                 );
 
-        List<Category> categories = categoryRepository.findAll();
+        // Nur Fragen der gewählten Kategorie laden
+        List<Question> questions = questionRepository.findByCategoryId(categoryId);
 
-        for (Category category : categories) {
-            long totalQuestions = questionRepository.countByCategoryId(categoryId);
-
-            long correctAnswers =
-                    progressRepository.countByUserIdAndQuestionCategoryIdAndCorrectTrue(
-                            userId,
-                            categoryId
-                    );
-
-            double percentage = totalQuestions == 0
-                    ? 0
-                    : (double) correctAnswers / totalQuestions * 100;
-
-            List<Question> questions =
-                    questionRepository.findByCategoryId(category.getId());
-
-            for (Question question : questions) {
-
-                Optional<UserProgress> progress =
-                        progressRepository.findByUserIdAndQuestionId(
-                                userId,
-                                question.getId()
-                        );
-
-                if (progress.isEmpty()) {
-                    return mapToDTO(question, totalQuestions, correctAnswers, percentage);
-                }
-            }
-        }
-
-        long totalQuestions = questionRepository.findAll().size();
+        long totalQuestions = questions.size();
 
         long correctAnswers =
                 progressRepository.countByUserIdAndQuestionCategoryIdAndCorrectTrue(
@@ -109,12 +80,37 @@ public class QuizService implements QuizServiceInterface {
                         categoryId
                 );
 
+        long answeredQuestions =
+                progressRepository.countByUserIdAndQuestionCategoryId(
+                        userId,
+                        categoryId
+                );
+
+        double percentage = totalQuestions == 0
+                ? 0
+                : (double) answeredQuestions / totalQuestions * 100;
+
+        // Erste unbeantwortete Frage der Kategorie finden
+        for (Question question : questions) {
+            Optional<UserProgress> progress =
+                    progressRepository.findByUserIdAndQuestionId(
+                            userId,
+                            question.getId()
+                    );
+
+            if (progress.isEmpty()) {
+                return mapToDTO(question, totalQuestions, correctAnswers, answeredQuestions, percentage);
+            }
+        }
+
+        // Alle Fragen der Kategorie beantwortet
         return QuestionDTO.builder()
                 .id(null)
                 .text("Alle Fragen beantwortet!")
                 .answers(List.of())
                 .totalQuestions(totalQuestions)
                 .correctAnswers(correctAnswers)
+                .answeredQuestions(totalQuestions)
                 .progressPercentage(100.0)
                 .build();
     }
@@ -157,7 +153,7 @@ public class QuizService implements QuizServiceInterface {
                 .build();
     }
 
-    private QuestionDTO mapToDTO(Question question, long totalQuestions, long correctAnswers, double percentage) {
+    private QuestionDTO mapToDTO(Question question, long totalQuestions, long correctAnswers, long answeredQuestions, double percentage) {
         return QuestionDTO.builder()
                 .id(question.getId())
                 .text(question.getText())
@@ -169,6 +165,7 @@ public class QuizService implements QuizServiceInterface {
                 ))
                 .totalQuestions(totalQuestions)
                 .correctAnswers(correctAnswers)
+                .answeredQuestions(answeredQuestions)
                 .progressPercentage(Math.round(percentage * 100.0) / 100.0)
                 .build();
     }

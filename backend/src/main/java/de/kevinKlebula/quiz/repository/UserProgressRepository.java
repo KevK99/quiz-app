@@ -13,4 +13,6 @@ public interface UserProgressRepository extends JpaRepository<UserProgress, Long
     Optional<UserProgress> findByUserIdAndQuestionId(Long userId, Long questionId);
 
     long countByUserIdAndQuestionCategoryIdAndCorrectTrue(Long userId, Long categoryId);
+
+    long countByUserIdAndQuestionCategoryId(Long userId, Long categoryId);
 }

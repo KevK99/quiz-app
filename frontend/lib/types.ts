@@ -6,6 +6,7 @@ export type Question = {
     totalQuestions: number
     correctAnswers: number
     progressPercentage: number
+    answeredQuestions: number
 }
 
 export interface AnswerResponse {

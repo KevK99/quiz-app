@@ -20,4 +20,5 @@ public class QuestionDTO {
     private long totalQuestions;
     private long correctAnswers;
     private double progressPercentage;
+    private long answeredQuestions;
 }

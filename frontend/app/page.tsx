@@ -1,46 +1,113 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { fetchCategories } from "@/lib/api"
 import { CategoryProgress } from "@/lib/types"
 import ProgressBar from "@/components/ProgressBar"
-import Link from "next/link"
 
 export default function HomePage() {
     const [categories, setCategories] = useState<CategoryProgress[]>([])
+    const [loading, setLoading] = useState(true)
+    const [fadeOut, setFadeOut] = useState(false)
+    const router = useRouter()
 
     useEffect(() => {
-        fetchCategories().then(setCategories)
+        fetchCategories().then((cats) => {
+            setCategories(cats)
+            setLoading(false)
+        })
     }, [])
 
-    return (
-        <div style={{ padding: 20 }}>
-            <h1>Quiz Kategorien</h1>
+    const totalQuestions = categories.reduce((s, c) => s + c.totalQuestions, 0)
+    const totalCorrect = categories.reduce((s, c) => s + c.correctAnswers, 0)
+    const overallPercent = totalQuestions === 0 ? 0 : Math.round(totalCorrect / totalQuestions * 100)
+    const allDone = categories.length > 0 && categories.every((c) => c.progressPercentage === 100)
 
-            {categories.map((cat) => (
-                <div
-                    key={cat.id}
-                    style={{
-                        border: "1px solid #ddd",
-                        padding: 16,
-                        marginBottom: 16,
-                        borderRadius: 8
-                    }}
-                >
-                    <h3>{cat.name}</h3>
+    const grade = overallPercent === 100 ? "🏆 Perfekt!"
+        : overallPercent >= 80 ? "🌟 Sehr gut!"
+            : overallPercent >= 60 ? "👍 Gut gemacht!"
+                : overallPercent >= 40 ? "💪 Weiter üben!"
+                    : "📚 Noch mal von vorne!"
 
-                    <p>
-                        {cat.correctAnswers} von {cat.totalQuestions} richtig
-                    </p>
+    const handleStart = () => {
+        const next = categories.find((c) => c.progressPercentage < 100)
+        if (!next) return
+        setFadeOut(true)
+        setTimeout(() => router.push(`/category/${next.id}`), 400)
+    }
 
-                    <ProgressBar percentage={cat.progressPercentage} />
+    if (loading) return <div className="fade-in" style={pageStyle}>Lade...</div>
+
+    // ── Results screen ──────────────────────────────────────────────
+    if (allDone) {
+        return (
+            <div className="fade-in" style={pageStyle}>
+                <p style={{ color: "#6b7280", marginBottom: 4, fontSize: 14 }}>Dein Ergebnis</p>
+                <h1 style={{ fontSize: 32, fontWeight: 800, margin: "0 0 4px" }}>{grade}</h1>
+                <p style={{ fontSize: 52, margin: "12px 0", fontWeight: 800 }}>
+                    {overallPercent}%
+                </p>
+                <p style={{ color: "#6b7280", marginBottom: 40 }}>
+                    {totalCorrect} von {totalQuestions} Fragen richtig
+                </p>
+
+                <div style={{ width: "100%", maxWidth: 500, display: "flex", flexDirection: "column", gap: 16 }}>
+                    {categories.map((cat) => {
+                        const pct = Math.round(cat.correctAnswers / cat.totalQuestions * 100)
+                        return (
+                            <div key={cat.id} style={{
+                                backgroundColor: "white",
+                                borderRadius: 12,
+                                padding: "16px 20px",
+                                boxShadow: "0 1px 6px rgba(0,0,0,0.07)",
+                            }}>
+                                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                                    <span style={{ fontWeight: 700 }}>{cat.name}</span>
+                                    <span style={{ color: "#6b7280", fontSize: 14 }}>
+                                        {cat.correctAnswers}/{cat.totalQuestions} richtig
+                                    </span>
+                                </div>
+                                <ProgressBar percentage={pct} label={`${pct}%`} />
+                            </div>
+                        )
+                    })}
                 </div>
-            ))}
-            <Link href={`/category/${1}`}>
-                <button style={{ marginTop: 10 }}>
-                    Starten
-                </button>
-            </Link>
+            </div>
+        )
+    }
+
+    // ── Start screen ────────────────────────────────────────────────
+    return (
+        <div className={fadeOut ? "fade-out" : "fade-in"} style={pageStyle}>
+            <h1 style={{ fontSize: 36, fontWeight: 800, marginBottom: 8 }}>Quiz App</h1>
+            <p style={{ color: "#6b7280", marginBottom: 48, fontSize: 16 }}>
+                {categories.length} Kategorien · {totalQuestions} Fragen
+            </p>
+            <button onClick={handleStart} style={btnStyle}>
+                Quiz starten →
+            </button>
         </div>
     )
+}
+
+const pageStyle: React.CSSProperties = {
+    minHeight: "80vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    padding: 24,
+}
+
+const btnStyle: React.CSSProperties = {
+    padding: "14px 40px",
+    fontSize: 17,
+    backgroundColor: "#3b82f6",
+    color: "white",
+    border: "none",
+    borderRadius: 10,
+    cursor: "pointer",
+    fontWeight: "bold",
 }
